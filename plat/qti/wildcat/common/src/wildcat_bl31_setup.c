@@ -40,6 +40,23 @@
 #include <arch_helpers.h>
 #include <tfa_bl31_shared_imem.h>
 
+#ifdef QTI_USE_TMECOM
+/*
+ * TME message/interface API headers.  These live on include paths added only
+ * by drivers/qti/tme/tme.mk, so they must stay behind QTI_USE_TMECOM - other
+ * wildcat platforms (e.g. hamoa) do not include tme.mk and would fail to
+ * compile this file otherwise.
+ */
+#include <IxErrno.h>
+#include <TmeInterfaces.h>
+#include <TmeInterfacesDefs.h>
+#include <TmeMessage.h>
+#include <qcbor.h>
+#include <qcbor_spiffy_decode.h>
+
+#include <drivers/qti/tme/tme_boot_test.h>
+#endif
+
 /* Ringbuf definition */
 /* For platform with TZ imem */
 #ifdef TFA_IMEM_BASE
