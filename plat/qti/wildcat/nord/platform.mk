@@ -145,7 +145,8 @@ QTI_BL31_SOURCES	:=	$(QTI_PLAT_PATH)/common/src/$(ARCH)/qti_helpers.S	\
 
 # Ensure Widevine is not being used
 ifeq ($(CROS_WIDEVINE_SMC), 0)
-QTI_BL31_SOURCES		+=	$(QTI_PLAT_PATH)/common/src/qti_oem_svc.c
+QTI_BL31_SOURCES		+=	$(QTI_PLAT_PATH)/common/src/qti_oem_svc.c	\
+					$(QTI_PLAT_PATH)/common/src/qti_fuseprov_platform.c
 endif
 
 PLAT_INCLUDES		+=	-Iinclude/plat/common/					\
@@ -251,5 +252,22 @@ endif
 # BL31 QTI calls to the selected SPD.
 BL31_SOURCES +=	${QTI_PLAT_PATH}/bl31qtilib/src/bl31qtilib_spd_agnostic_stub.c \
 			${QTI_PLAT_PATH}/bl31qtilib/src/bl31qtilib_spd_agnostic_panic_stub.S
+
+# QCOM MBOX
+QCOM_MBOX	:=	1
+QCOM_MBOX_QMP	:=	1
+
+include drivers/qti/mbox/mbox.mk
+PLAT_INCLUDES	+=	-Idrivers/qti/mbox/
+BL31_SOURCES	+=	${QTI_PLAT_PATH}/$(CHIPSET)/src/qcom_mbox_plat.c
+
+# TMECOM
+QTI_TMECOM	:=	1
+$(eval $(call add_define,QTI_USE_TMECOM))
+$(eval $(call add_define,QTI_TMECOM_TEST))
+include drivers/qti/tme/tme.mk
+
+# Fuseprov driver: parses SEC.DAT and blows fuses via the TME transport.
+include drivers/qti/fuseprov/fuseprov.mk
 
 include $(QTI_PLAT_PATH)/common/common.mk
