@@ -104,6 +104,10 @@ ENABLE_ASSERTIONS		:=	1
 
 # Enable backtrace dumps.
 ENABLE_BACKTRACE		:=	1
+
+# Enable FuseProv read-back diagnostics.
+$(eval $(call add_define, QTI_FUSEPROV_TEST))
+
 PMIC_ARB_VERSION	:=	pmicarb7
 include drivers/qti/pmic/pmic.mk
 
@@ -146,6 +150,9 @@ PLAT_INCLUDES		+=	-Iinclude/plat/common/					\
 
 PLAT_INCLUDES		+=	${QTI_EXTERNAL_INCLUDES}
 PLAT_INCLUDES		+=	-I${QTI_PLAT_PATH}/common/inc/$(ARCH)
+PLAT_INCLUDES		+=	-Iinclude/drivers/qti/pmic				\
+				-Iinclude/drivers/qti/pmic/${PMIC_ARB_VERSION}	\
+				-Iinclude/drivers/qti/pmic/${CHIPSET}
 
 include lib/xlat_tables_v2/xlat_tables.mk
 include drivers/qti/smem/smem.mk
