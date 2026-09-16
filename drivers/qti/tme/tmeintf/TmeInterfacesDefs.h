@@ -243,4 +243,11 @@ typedef PACKED_STRUCT
   uint32_t status; //<! TME handler status; 0 on success
 } tmeWriteConfigRegisterRsp_t;
 
+/* Response payload for TME_MSG_CBOR_TAG_UPDATE_ROLLBACK_VERSION. */
+typedef PACKED_STRUCT
+{
+  uint32_t status;
+  uint32_t errAddr;
+} tmeUpdateRollbackVersionRsp_t;
+
 #endif /* TME_INTERFACES_DEFS_H_INCLUDED */
