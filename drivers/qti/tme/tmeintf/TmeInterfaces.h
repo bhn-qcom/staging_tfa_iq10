@@ -155,6 +155,9 @@ int TmeFuseWriteMultiple(TMEFuse_t      *fuseArray,
                          size_t          fuseArrayLen,
                          uint32_t *const qfpromApiStatus);
 
+/* Update boot-image anti-rollback fuse versions through TME. */
+int TmeUpdateRollbackVersion(void);
+
 /*
  * TmeWriteConfigRegister() - write a QFPROM configuration register via TME.
  *
