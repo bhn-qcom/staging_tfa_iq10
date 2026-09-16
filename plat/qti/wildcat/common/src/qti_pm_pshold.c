@@ -5,6 +5,7 @@
  */
 
 #include <drivers/delay_timer.h>
+#include <drivers/qti/pmic/pm_pon.h>
 
 #include <platform_def.h>
 #include <qti_plat.h>
@@ -14,9 +15,6 @@
  * This driver implements PON support for PM8998-compatible PMICs. This can
  * include other part numbers like PM6150.
  */
-
-#define RESET_TYPE_WARM_RESET	1
-#define RESET_TYPE_SHUTDOWN		4
 
 #define S2_RESET_EN			BIT(7)
 
