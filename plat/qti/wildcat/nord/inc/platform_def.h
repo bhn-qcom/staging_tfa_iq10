@@ -156,9 +156,11 @@
 /*----------------------------------------------------------------------------*/
 /* LC PON register offsets */
 /*----------------------------------------------------------------------------*/
+/*
 #define QTI_PS_HOLD_REG 0xC264000
 #define PON_PS_HOLD_RESET_CTL 0x852
 #define PON_PS_HOLD_RESET_CTL2 0x853
+*/
 
 /*----------------------------------------------------------------------------*/
 /* Nord MD to SAIL communication registers and values                          */

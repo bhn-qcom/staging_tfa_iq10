@@ -15,11 +15,12 @@
 #include <drivers/qti/pmic/pm_pon.h>
 #include <drivers/qti/fuseprov/fuseprov_port_tme.h>
 
-static __dead2 __unused void qti_fuseprov_trigger_reset(bool warm_reset)
+static __dead2 __unused void qti_fuseprov_trigger_reset()
 {
-	pm_app_ps_hold_cfg(warm_reset ? RESET_TYPE_WARM_RESET :
-				   RESET_TYPE_HARD_RESET);
-
+	NOTICE("Fuseprov-Reset: pshold_configing\n");
+	pm_app_ps_hold_cfg(RESET_TYPE_HARD_RESET);
+	NOTICE("Fuseprov-Reset: pshold_cfgdone\n");
+	qti_platform_psci_system_reset();
 	/* Deasserting PS_HOLD starts the reset selected in the PMIC. */
 	NOTICE("Fuseprov-Reset: Writing the Register for PS Hold to Low\n");
 	mmio_write_32(QTI_PS_HOLD_REG, 0U);
@@ -155,6 +156,12 @@ int qti_fuseprov_init(void)
 
 	ret = fuseprov_blow_fuses_sec_elf_v3(transport, (uint8_t *)secelf_pa,
 					     secelf_len);
+	// if (ret == FUSEPROV_SUCCESS)
+	pm_app_ps_hold_cfg(RESET_TYPE_HARD_RESET);
+	NOTICE("Fuseprov-Reset: psci_reset_done\n");
+	NOTICE("Fuseprov-Reset: Writing the Register for PS Hold to Low\n");
+	mmio_write_32(QTI_PS_HOLD_REG, 0U);
+	NOTICE("Fuseprov-Reset: Written the Register for PS Hold to Low\n");
 #if defined(QTI_FUSEPROV_TEST)
 	qti_fuseprov_read_test(transport);
 #endif
@@ -179,8 +186,6 @@ int qti_fuseprov_init(void)
 		ERROR("Fuseprov: failed to unmap sec.elf buffer\n");
 
 	if (ret == FUSEPROV_SUCCESS) {
-		/* TODO: Re-enable when the FuseProv reset dependency is available. */
-		/* qti_fuseprov_trigger_reset(false); */
 		return FUSEPROV_SUCCESS;
 	}
 
