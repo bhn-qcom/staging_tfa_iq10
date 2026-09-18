@@ -27,7 +27,7 @@ static struct clock_source sources[CLOCK_SOURCE_TOTAL] = {
 
 static struct clock_group clock_groups[CLOCK_GROUP_TOTAL] = {
 	[CLOCK_GROUP_INIT] = {
-		.clocks = (struct clock_clk_desc[]) {
+		.clks = (struct clock_desc[]) {
 			{ GCC_CE0_AHB_CBCR, VOTE(CE0_AHB_CLK_ENA) },
 			{ GCC_CE1_AHB_CBCR, VOTE(CE1_AHB_CLK_ENA) },
 			{ GCC_DCC_AHB_CBCR },
@@ -90,7 +90,7 @@ static struct clock_group clock_groups[CLOCK_GROUP_TOTAL] = {
 			{ 0 }
 		},
 
-		.power_domains = (struct clock_power_domain_desc[]) {
+		.pwr_domains = (struct clock_power_domain_desc[]) {
 			{ CAM_CC_TITAN_TOP_GDSCR,             .part = CHIPINFO_PART_CAMERA  },
 			{ MDSS_0_DISP_CC_MDSS_CORE_GDSCR,    .part = CHIPINFO_PART_DISPLAY },
 			{ MDSS_0_DISP_CC_MDSS_CORE_INT2_GDSCR, .part = CHIPINFO_PART_DISPLAY },
@@ -106,7 +106,7 @@ static struct clock_group clock_groups[CLOCK_GROUP_TOTAL] = {
 			{ GCC_EMAC1_GDSCR },
 			{ 0 }
 		},
-		.access_clocks = (struct clock_clk_desc[]) {
+		.access_clks = (struct clock_desc[]) {
 			{ GCC_CAMERA_AHB_CBCR,         .part = CHIPINFO_PART_CAMERA    },
 			{ GCC_CAMERA_XO_CBCR,          .part = CHIPINFO_PART_CAMERA    },
 			{ GCC_CFG_NOC_MMNOC_AHB_CBCR },
@@ -119,7 +119,7 @@ static struct clock_group clock_groups[CLOCK_GROUP_TOTAL] = {
 			{ GCC_VIDEO_AHB_CBCR,          .part = CHIPINFO_PART_VIDEO     },
 			{ 0 }
 		},
-		.voltage_requests = (struct clock_voltage_request[]) {
+		.volt_reqs = (struct clock_voltage_request[]) {
 			{ "mmcx.lvl", RAIL_VOLTAGE_LEVEL_NOM },
 			{ "gfx.lvl",  RAIL_VOLTAGE_LEVEL_NOM, .part = CHIPINFO_PART_GPU },
 			{ 0 }
@@ -127,7 +127,7 @@ static struct clock_group clock_groups[CLOCK_GROUP_TOTAL] = {
 	},
 
 	[CLOCK_GROUP_QDSS] = {
-		.clocks = (struct clock_clk_desc[]) {
+		.clks = (struct clock_desc[]) {
 			/*
 			 * This register enables the CDBGPWRUPREQ signal that
 			 * enables all QDSS-related clocks.
@@ -138,7 +138,7 @@ static struct clock_group clock_groups[CLOCK_GROUP_TOTAL] = {
 	},
 };
 
-struct clock_tfa_bsp clock_tfa_bsp_config = {
+struct clock_config clock_cfg = {
 	.clock_groups = clock_groups,
 	.sources      = sources,
 };
