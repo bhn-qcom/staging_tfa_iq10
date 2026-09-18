@@ -12,6 +12,8 @@
 #include <drivers/qti/platforminfo/platforminfodefs.h>
 #include <drivers/qti/smem/smem.h>
 
+#define SMEM_HW_SW_BUILD_ID 0x89
+
 static struct chipinfo_ctxt chipinfo_ctxt;
 
 uint32_t chipinfo_get_chip_version(void)
@@ -76,16 +78,17 @@ bool chipinfo_is_part_disabled(enum chipinfo_part part, uint32_t part_idx)
 enum chipinfo_result qti_chipinfo_init(void)
 {
 	struct platforminfo_smem *smem;
-	uint32_t size;
+	size_t size;
 	uint32_t fmt;
 	uint32_t chip_id;
 	uint32_t chip_family;
 	uint32_t i;
+	int ret;
 
 	/* Access the socinfo SMEM region populated by the boot firmware. */
-	smem = (struct platforminfo_smem *)smem_get_addr(SMEM_HW_SW_BUILD_ID,
-							 &size);
-	if (smem == NULL || size < sizeof(uint32_t)) {
+	ret = qti_smem_lookup(QTI_SMEM_HOST_COMMON, SMEM_HW_SW_BUILD_ID,
+			      QTI_SMEM_FLAG_NONE, (void **)&smem, &size);
+	if (ret != 0 || smem == NULL || size < sizeof(uint32_t)) {
 		return CHIPINFO_ERROR_NOT_FOUND;
 	}
 
