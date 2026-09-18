@@ -34,26 +34,25 @@ enum clock_group_type {
 };
 
 /*
- * Enable clocks necessary for TF-A initialization. Must be called before any
- * other clock API.
+ * Bring up the clocks BL31 needs while initializing, run fn (may be NULL)
+ * with them held, then release the ones only needed during init. On return
+ * the init-only clocks are off again.
  */
 #ifdef QTI_CLOCK_ENABLED
-void qti_clock_init(void);
+void qti_clock_init(void (*fn)(void));
 #else
-static inline void qti_clock_init(void) {}
-#endif
-
-/* Disable clocks that were only needed during TF-A initialization. */
-#ifdef QTI_CLOCK_ENABLED
-void qti_clock_init_done(void);
-#else
-static inline void qti_clock_init_done(void) {}
+static inline void qti_clock_init(void (*fn)(void))
+{
+	if (fn != NULL) {
+		fn();
+	}
+}
 #endif
 
 /* Enable all clocks in a group, plus any required power domains. */
-int clock_enable_clock_group(enum clock_group_type group);
+int clock_group_enable(enum clock_group_type group);
 
 /* Disable all clocks in a group, plus any required power domains. */
-int clock_disable_clock_group(enum clock_group_type group);
+int clock_group_disable(enum clock_group_type group);
 
 #endif /* CLOCK_H */

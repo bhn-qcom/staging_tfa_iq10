@@ -27,7 +27,7 @@ struct clock_source {
 struct clock_voltage_request {
 	const char		*rail;
 	enum rail_voltage_level	vlvl;
-	int			rail_addr; /* runtime — 0 until first enable */
+	uint32_t		rail_addr; /* runtime — 0 until first enable */
 	int			hlvl;      /* runtime — 0 until first enable */
 	enum chipinfo_part	part;
 	uint32_t		part_idx;
@@ -35,19 +35,19 @@ struct clock_voltage_request {
 
 /* Group of clocks/power-domains/requests managed together. */
 struct clock_group {
-	struct clock_clk_desc		*clocks;
-	struct clock_power_domain_desc	*power_domains;
-	struct clock_clk_desc		*access_clocks;
-	struct clock_voltage_request	*voltage_requests;
+	struct clock_desc		*clks;
+	struct clock_power_domain_desc	*pwr_domains;
+	struct clock_desc		*access_clks;
+	struct clock_voltage_request	*volt_reqs;
 	uint32_t			ref_count;
-	uint32_t			num_clocks;
-	uint32_t			num_power_domains;
-	uint32_t			num_access_clocks;
-	uint32_t			num_voltage_requests;
+	uint32_t			clk_count;
+	uint32_t			pwr_domain_count;
+	uint32_t			access_clk_count;
+	uint32_t			volt_req_count;
 };
 
 /* Top-level BSP data structure. */
-struct clock_tfa_bsp {
+struct clock_config {
 	struct clock_group	*clock_groups;
 	struct clock_source	*sources;
 };
