@@ -148,6 +148,16 @@ PLAT_INCLUDES		+=	${QTI_EXTERNAL_INCLUDES}
 include lib/xlat_tables_v2/xlat_tables.mk
 include drivers/qti/smem/smem.mk
 include drivers/qti/chipinfo/chipinfo.mk
+include drivers/qti/cmd_db/cmd_db.mk
+include drivers/qti/rpmh/rpmh.mk
+include drivers/qti/pwr_utils/pwr_utils.mk
+# nord votes MMCX/GFX rails up for xPU/secure programming during clock init.
+QTI_CLOCK_RAIL_VOTE := 1
+include drivers/qti/clock/clock.mk
+
+# nord has no xPU/VMIDMT static-config port yet, so drive
+# qti_accesscontrol_init() through the stub until one exists.
+BL31_SOURCES	+=	drivers/qti/accesscontrol/access_control_stub.c
 include drivers/qti/qgic/qgic.mk
 PLAT_BL_COMMON_SOURCES	+=	${XLAT_TABLES_LIB_SRCS}					\
 				plat/common/aarch64/crash_console_helpers.S    \
