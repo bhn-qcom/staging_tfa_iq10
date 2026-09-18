@@ -14,7 +14,7 @@
 #include <drivers/qti/clock/clock_types.h>
 #include <lib/mmio.h>
 
-void clock_hal_enable_clock(struct clock_clk_desc *clock)
+void clock_hal_set_clock(struct clock_desc *clock, bool enable)
 {
 	uintptr_t addr;
 	uint32_t val, mask;
@@ -27,31 +27,18 @@ void clock_hal_enable_clock(struct clock_clk_desc *clock)
 		mask = HAL_CLK_BRANCH_CTRL_REG_CLK_ENABLE_FMSK;
 	}
 
-	if (addr != 0U) {
+	if (addr == 0U) {
+		return;
+	}
+
+	if (enable) {
 		val = mmio_read_32(addr);
 		clock->tfa_enabled = ((val & mask) == 0U);
 		mmio_write_32(addr, val | mask);
-	}
-}
-
-void clock_hal_disable_clock(struct clock_clk_desc *clock)
-{
-	uintptr_t addr;
-	uint32_t mask;
-
-	if (clock->vote_reg.addr != 0U) {
-		addr = clock->vote_reg.addr;
-		mask = clock->vote_reg.mask;
 	} else {
-		addr = clock->cbcr_addr;
-		mask = HAL_CLK_BRANCH_CTRL_REG_CLK_ENABLE_FMSK;
-	}
-
-	if (addr != 0U) {
 		mmio_write_32(addr, mmio_read_32(addr) & ~mask);
+		clock->tfa_enabled = false;
 	}
-
-	clock->tfa_enabled = false;
 }
 
 void clock_hal_enable_source(struct clock_source_desc *source)
@@ -64,7 +51,7 @@ void clock_hal_enable_source(struct clock_source_desc *source)
 	mmio_setbits_32(source->vote_reg.addr, source->vote_reg.mask);
 }
 
-int clock_hal_wait_for_source_on(struct clock_source_desc *source)
+int clock_hal_wait_for_source_on(const struct clock_source_desc *source)
 {
 	uint32_t retry = 500U;
 	uintptr_t addr = source->mode_addr;
@@ -85,7 +72,7 @@ int clock_hal_wait_for_source_on(struct clock_source_desc *source)
 	return 0;
 }
 
-int clock_hal_is_clock_on(struct clock_clk_desc *clock)
+static int clock_hal_is_clock_on(const struct clock_desc *clock)
 {
 	if (clock->cbcr_addr == 0U) {
 		return 0;
@@ -99,7 +86,7 @@ int clock_hal_is_clock_on(struct clock_clk_desc *clock)
 	return 0;
 }
 
-int clock_hal_wait_for_clock_on(struct clock_clk_desc *clock)
+int clock_hal_wait_for_clock_on(const struct clock_desc *clock)
 {
 	uint32_t retry = 100U;
 
@@ -161,7 +148,7 @@ void clock_hal_disable_power_domain(struct clock_power_domain_desc *power_domain
 	power_domain->tfa_enabled = false;
 }
 
-int clock_hal_is_power_domain_on(struct clock_power_domain_desc *power_domain)
+static int clock_hal_is_power_domain_on(const struct clock_power_domain_desc *power_domain)
 {
 	if (power_domain->vote_reg.addr != 0U) {
 		/* Vote-based (GDS_HW): on if our vote bit is set, no status to poll. */
@@ -179,7 +166,7 @@ int clock_hal_is_power_domain_on(struct clock_power_domain_desc *power_domain)
 		 HAL_CLK_CFG_GDSCR_POWER_UP_COMPLETE_FMSK) != 0U) ? 0 : -1;
 }
 
-int clock_hal_wait_for_power_domain_on(struct clock_power_domain_desc *power_domain)
+int clock_hal_wait_for_power_domain_on(const struct clock_power_domain_desc *power_domain)
 {
 	uint32_t retry = 500U;
 
@@ -198,7 +185,7 @@ int clock_hal_wait_for_power_domain_on(struct clock_power_domain_desc *power_dom
 	return 0;
 }
 
-int clock_hal_wait_for_power_domain_off(struct clock_power_domain_desc *power_domain)
+int clock_hal_wait_for_power_domain_off(const struct clock_power_domain_desc *power_domain)
 {
 	uint32_t retry = 500U;
 

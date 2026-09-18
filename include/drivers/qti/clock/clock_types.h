@@ -22,6 +22,8 @@
 
 /* GDSCR (power domain) register fields. */
 #define HAL_CLK_GDSCR_SW_COLLAPSE_FMSK		0x00000001U
+/* VALIDATION-ONLY: used by clock_dump_status(); remove before final release. */
+#define HAL_CLK_GDSCR_PWR_ON_FMSK		0x80000000U
 
 /*
  * CFG_GDSCR fields — architecturally fixed at GDSCR+4 across all GDSCs.
@@ -38,6 +40,9 @@
 enum clock_source_id {
 	CLOCK_SOURCE_XO			= 0,
 	CLOCK_SOURCE_GPLL0		= 1,
+	CLOCK_SOURCE_NE_GCC_GPLL0	= 2,
+	CLOCK_SOURCE_NW_GCC_GPLL0	= 3,
+	CLOCK_SOURCE_SE_GCC_GPLL0	= 4,
 	CLOCK_SOURCE_TOTAL
 };
 
@@ -54,7 +59,7 @@ struct clock_source_desc {
 };
 
 /* Clock (CBCR) descriptor. */
-struct clock_clk_desc {
+struct clock_desc {
 	uintptr_t			cbcr_addr;
 	struct clock_register_mask	vote_reg;
 	bool				tfa_enabled; /* runtime — never set in BSP data */
