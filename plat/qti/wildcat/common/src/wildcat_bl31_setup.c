@@ -17,10 +17,16 @@
 #include <drivers/arm/dcc.h>
 #include <drivers/console.h>
 #include <drivers/generic_delay_timer.h>
+#ifdef QTI_CLOCK_ENABLED
 #include <drivers/qti/accesscontrol/accesscontrol.h>
+#endif /* QTI_CLOCK_ENABLED */
 #include <drivers/qti/chipinfo/chipinfo.h>
+#ifdef QTI_CLOCK_ENABLED
 #include <drivers/qti/clock/clock.h>
+#endif /* QTI_CLOCK_ENABLED */
+#ifdef QTI_PWR_UTILS_ENABLED
 #include <drivers/qti/pwr_utils/pwr_utils.h>
+#endif /* QTI_PWR_UTILS_ENABLED */
 #include <drivers/qti/qtimer/qtimer.h>
 #include <drivers/qti/smem/smem.h>
 #include <drivers/qti/watchdog/watchdog.h>
@@ -357,6 +363,7 @@ extern char OEM_IMAGE_VERSION_STRING_AUTO_UPDATED[];
 extern char OEM_IMAGE_UUID_STRING_AUTO_UPDATED[];
 extern char OEM_HOST_TIMESTAMP_STRING_AUTO_UPDATED[];
 
+#ifdef QTI_CLOCK_ENABLED
 /*
  * Boot-time init that needs the TF-A init-only clocks held. Add future
  * clock-dependent init calls here rather than bracketing them inline.
@@ -365,6 +372,7 @@ static void clocked_boot_init(void)
 {
 	qti_accesscontrol_init();
 }
+#endif /* QTI_CLOCK_ENABLED */
 
 void bl31_platform_setup(void)
 {
@@ -420,9 +428,13 @@ void bl31_platform_setup(void)
 		ERROR("Watchdog initialization error\n");
 	}
 
+#ifdef QTI_PWR_UTILS_ENABLED
 	qti_pwr_utils_init();
+#endif /* QTI_PWR_UTILS_ENABLED */
 
+#ifdef QTI_CLOCK_ENABLED
 	qti_clock_init(clocked_boot_init);
+#endif /* QTI_CLOCK_ENABLED */
 
 	bl31qtilib_bl31_platform_setup();
 }
