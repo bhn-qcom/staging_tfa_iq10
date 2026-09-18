@@ -109,7 +109,8 @@ QTI_EXTERNAL_INCLUDES :=					\
 	-I${QTI_PLAT_PATH}/common/inc				\
 	-I${QTI_PLAT_PATH}/common/inc/$(ARCH)			\
 	-I${QTI_PLAT_PATH}/bl31qtilib/inc			\
-	-I${QTI_COMMON_PATH}/inc
+	-I${QTI_COMMON_PATH}/inc				\
+	-I${QTI_COMMON_PATH}/inc/$(ARCH)			\
 
 QTI_BL31_SOURCES :=						\
 	$(QTI_PLAT_PATH)/common/src/$(ARCH)/qti_helpers.S	\
@@ -183,7 +184,7 @@ QTI_NCC_CPU := 1
 #expose older soc_id format
 $(eval $(call add_define, QTI_NO_SMCC_ARCH_SOC_ID))
 
-CPU_SOURCES := $(QTI_PLAT_PATH)/common/src/aarch64/cortex_phoenix.S
+CPU_SOURCES := $(QTI_PLAT_PATH)/common/src/aarch64/qcom_oryon_v1.S
 
 BL31_SOURCES +=			\
 	${QTI_BL31_SOURCES}	\
