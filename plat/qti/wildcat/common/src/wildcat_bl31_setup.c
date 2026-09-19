@@ -24,9 +24,7 @@
 #ifdef QTI_CLOCK_ENABLED
 #include <drivers/qti/clock/clock.h>
 #endif /* QTI_CLOCK_ENABLED */
-#ifdef QTI_PWR_UTILS_ENABLED
 #include <drivers/qti/pwr_utils/pwr_utils.h>
-#endif /* QTI_PWR_UTILS_ENABLED */
 #include <drivers/qti/qtimer/qtimer.h>
 #include <drivers/qti/smem/smem.h>
 #include <drivers/qti/watchdog/watchdog.h>
@@ -428,9 +426,7 @@ void bl31_platform_setup(void)
 		ERROR("Watchdog initialization error\n");
 	}
 
-#ifdef QTI_PWR_UTILS_ENABLED
 	qti_pwr_utils_init();
-#endif /* QTI_PWR_UTILS_ENABLED */
 
 #ifdef QTI_CLOCK_ENABLED
 	qti_clock_init(clocked_boot_init);
