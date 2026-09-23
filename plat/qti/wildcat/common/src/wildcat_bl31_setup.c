@@ -17,7 +17,13 @@
 #include <drivers/arm/dcc.h>
 #include <drivers/console.h>
 #include <drivers/generic_delay_timer.h>
+#ifdef QTI_CLOCK_ENABLED
+#include <drivers/qti/accesscontrol/accesscontrol.h>
+#endif /* QTI_CLOCK_ENABLED */
 #include <drivers/qti/chipinfo/chipinfo.h>
+#ifdef QTI_CLOCK_ENABLED
+#include <drivers/qti/clock/clock.h>
+#endif /* QTI_CLOCK_ENABLED */
 #include <drivers/qti/pwr_utils/pwr_utils.h>
 #include <drivers/qti/qtimer/qtimer.h>
 #include <drivers/qti/smem/smem.h>
@@ -283,6 +289,16 @@ extern char OEM_IMAGE_VERSION_STRING_AUTO_UPDATED[];
 extern char OEM_IMAGE_UUID_STRING_AUTO_UPDATED[];
 extern char OEM_HOST_TIMESTAMP_STRING_AUTO_UPDATED[];
 
+#ifdef QTI_CLOCK_ENABLED
+/*
+ * Boot-time init that needs the TF-A init-only clocks held. Add future
+ * clock-dependent init calls here rather than bracketing them inline.
+ */
+static void clocked_boot_init(void)
+{
+	qti_accesscontrol_init();
+}
+#endif /* QTI_CLOCK_ENABLED */
 #pragma weak plat_cpuss_config
 
 void plat_cpuss_config(void)
@@ -328,6 +344,15 @@ void bl31_platform_setup(void)
 	}
 #endif /* QTI_MBOX */
 
+	/*
+	 * qti_qtimer_init() explicitly does not call this (see the comment
+	 * above its definition in qtimer.c) -- bl31_platform_setup() owns it.
+	 * Without it, timer_ops stays NULL and any udelay()/mdelay() call in
+	 * the clock/rpmh/pwr_utils rail-vote path (e.g. nord/clock_init.c)
+	 * hits the assert in delay_timer.c.
+	 */
+	generic_delay_timer_init();
+
 	ret = qti_qtimer_init();
 	if (ret != 0) {
 		ERROR("QTimer init failed: %d\n", ret);
@@ -338,6 +363,10 @@ void bl31_platform_setup(void)
 	}
 
 	qti_pwr_utils_init();
+
+#ifdef QTI_CLOCK_ENABLED
+	qti_clock_init(clocked_boot_init);
+#endif /* QTI_CLOCK_ENABLED */
 
 	bl31qtilib_bl31_platform_setup();
 }
