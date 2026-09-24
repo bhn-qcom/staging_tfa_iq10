@@ -150,9 +150,6 @@
 #define QTI_SMEM_BASE ULL(0x89B00000)
 #define QTI_SMEM_SIZE ULL(0x00400000)
 
-/* LC PON register offsets */
-#define PON_PS_HOLD_RESET_CTL 0x852
-#define PON_PS_HOLD_RESET_CTL2 0x853
 
 /* TME shared mailbox RAM and interrupt registers */
 #define QTI_TME_MBOX_RAM_HIGH		0x3623e800
@@ -164,8 +161,6 @@
 /* LC PON register offsets */
 /*----------------------------------------------------------------------------*/
 #define QTI_PS_HOLD_REG 0xC264000
-#define PON_PS_HOLD_RESET_CTL 0x852
-#define PON_PS_HOLD_RESET_CTL2 0x853
 
 /*----------------------------------------------------------------------------*/
 /* Nord MD to SAIL communication registers and values                          */
@@ -175,7 +170,7 @@
 #define QTI_TCSR_SAIL2MAIN_GP_NONSEC_SHADOW_STATUS4_REG	U(0x01F7B014)
 
 #define QTI_APSS_INTU_TZ_IPC_INTERRUPT		U(0x17824004)
-#define QTI_APSS_INTU_TZ_SPARE_IPC_BMSK	U(0x00F00000)
+#define QTI_APSS_INTU_TZ_SPARE_IPC_BMSK	U(0x0080000)
 
 #define QTI_MD_SD_MSG_TYPE_SHIFT	U(16)
 #define QTI_MD_SD_MSG_TYPE_MASK		(U(0xFF) << QTI_MD_SD_MSG_TYPE_SHIFT)
