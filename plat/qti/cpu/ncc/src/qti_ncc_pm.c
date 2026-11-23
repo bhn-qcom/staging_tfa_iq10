@@ -39,7 +39,7 @@
 #include <drivers/arm/gicv3.h>
 #include <hwm_lock.h>
 #include <lib/spinlock.h>
-#include <ncc_cpu_power.h>
+#include <cpucp_pwr.h>
 #include <ncc_hwio.h>
 
 /*

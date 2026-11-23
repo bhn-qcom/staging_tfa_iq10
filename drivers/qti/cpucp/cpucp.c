@@ -6,34 +6,19 @@
 
 #include <assert.h>
 #include <stdint.h>
-#include <cpu_config.h>
+#include <arch_helpers.h>
+#include <common/debug.h>
+#include <lib/bakery_lock.h>
+#include <lib/mmio.h>
 #include <cpucp.h>
 #include <cpucp_hwio.h>
 #include <drivers/arm/css/scmi.h>
 #include <lib/mmio.h>
 #include <lib/spinlock.h>
 #include <plat/common/platform.h>
+#include <platform_def.h>
 
 #include <scmi_private.h>
-
-/*
- * Lean CPUCP host driver for TF-A. Only the clock-domain enable path that is
- * required during secondary-core cold boot is implemented. CPUCP speaks the
- * SCMI protocol over a shared-memory mailbox, so the generic TF-A SCMI driver
- * (drivers/arm/css/scmi) is reused for the transport and message handling; this
- * file only wires up the CPUCP mailbox/doorbell and issues the SCMI Clock
- * Management "config set" command that is not part of the generic driver.
- */
-
-/* SCMI Clock Management protocol (SCMI spec, Section 4.6). */
-#define SCMI_CLOCK_PROTO_ID			0x14
-#define SCMI_CLOCK_CONFIG_SET_MSG		0x7
-
-/* Message length: header word (4) + clock_id (4) + attributes (4). */
-#define SCMI_CLOCK_CONFIG_SET_MSG_LEN		12
-
-/* CLOCK_CONFIG_SET attributes: enable the clock. */
-#define SCMI_CLOCK_CONFIG_SET_ENABLE		0x1
 
 /* CPUCP doorbell: APSS -> CPUCP IPC interrupt trigger bit. */
 #define CPUCP_DB_MODIFY_MASK		\
@@ -44,9 +29,14 @@
 #define CPUCP_SCMI_POLL_DELAY_US		1U
 #define CPUCP_SCMI_TIMEOUT_US			(500U * 1000U)
 
+#pragma weak plat_cpu_scmi_protocol_init
+
+int plat_cpu_scmi_protocol_init(scmi_channel_t *ch)
+{
+	return 0;
+}
+
 static scmi_lock_t cpucp_scmi_lock;
-static spinlock_t cpucp_clkdom_init_spinlock;
-static void *cpucp_scmi_handle;
 
 /* Ring the CPUCP doorbell to hand the SCMI channel over for processing. */
 static void cpucp_ring_doorbell(struct scmi_channel_plat_info *plat_info)
@@ -67,82 +57,51 @@ static scmi_channel_plat_info_t cpucp_scmi_plat_info = {
 static scmi_channel_t cpucp_scmi_channel = {
 	.info = &cpucp_scmi_plat_info,
 	.lock = &cpucp_scmi_lock,
+	.is_initialized = 0,
 };
 
 /*
- * cpucp_scmi_clock_enable - issue an SCMI Clock Management CLOCK_CONFIG_SET
- * (enable) command for @clock_id over the CPUCP channel, returning the SCMI
- * status code.
+ * qti_scmi_get_channel - initialise and return the QTI SCMI channel.
+ *
+ * Calls scmi_init() to initialise the channel lock via the standard ARM CSS
+ * SCMI driver path.  scmi_init() also queries the Power Domain (0x11) and
+ * System Power (0x12) protocol versions; CPUCP on Nord only implements the
+ * Reset Domain protocol (0x16), so those queries will fail and scmi_init()
+ * will return NULL.  In that case the channel lock has already been
+ * initialised by scmi_init(), so we mark the channel ready manually to allow
+ * the Reset Domain protocol to proceed.
+ *
+ * Returns a pointer to the initialised scmi_channel_t cast to void *, or
+ * NULL if the channel could not be initialised at all.
  */
-static int cpucp_scmi_clock_enable(void *p, uint32_t clock_id)
+void *qti_scmi_get_channel(void)
 {
-	mailbox_mem_t *mbx_mem;
-	unsigned int token = 0U;
-	int ret;
-	scmi_channel_t *ch = (scmi_channel_t *)p;
+	if (cpucp_scmi_channel.is_initialized != 0) {
+		return (void *)&cpucp_scmi_channel;
+	}
 
-	validate_scmi_channel(ch);
+	/*
+	 * scmi_init() initialises the channel lock and then queries the
+	 * protcols versions that are used by the platform.
+	 */
+	if (scmi_init(&cpucp_scmi_channel, plat_cpu_scmi_protocol_init) == NULL) {
+		INFO("QTI SCMI: scmi_init() returned NULL;"
+		     "Channel usable for protocols supported by the platform.\n");
+		cpucp_scmi_channel.is_initialized = 1;
+	}
 
-	scmi_get_channel(ch);
-
-	mbx_mem = (mailbox_mem_t *)(ch->info->scmi_mbx_mem);
-	mbx_mem->msg_header = SCMI_MSG_CREATE(SCMI_CLOCK_PROTO_ID,
-					     SCMI_CLOCK_CONFIG_SET_MSG, token);
-	mbx_mem->len = SCMI_CLOCK_CONFIG_SET_MSG_LEN;
-	mbx_mem->flags = SCMI_FLAG_RESP_POLL;
-	SCMI_PAYLOAD_ARG2(mbx_mem->payload, clock_id,
-			  SCMI_CLOCK_CONFIG_SET_ENABLE);
-
-	scmi_send_sync_command(ch);
-
-	/* Get the SCMI return status. */
-	SCMI_PAYLOAD_RET_VAL1(mbx_mem->payload, ret);
-
-	scmi_put_channel(ch);
-
-	return ret;
+	return (void *)&cpucp_scmi_channel;
 }
 
 /*
- * cpucp_clkdom_init - request CPUCP to enable the clock domain owning the
- * calling core during cold boot.
+ * plat_css_get_scmi_info - return the platform SCMI channel descriptor.
  *
- * If the calling core is the first core of its clock domain to cold boot, issue
- * an SCMI Clock Management "config set" command to CPUCP to enable the clock
- * domain.
+ * This is the weak hook declared in include/drivers/arm/css/scmi.h that
+ * platform code must override to supply the channel parameters.  The ARM CSS
+ * SCMI driver calls this during scmi_init() to obtain the mailbox base
+ * address, doorbell register, and ring_doorbell callback.
  */
-void cpucp_clkdom_init(void)
+scmi_channel_plat_info_t *plat_css_get_scmi_info(unsigned int channel_id __unused)
 {
-	unsigned int core_pos = plat_my_core_pos();
-	uint32_t linear_id;
-	int i;
-
-	/* CPU masks are 32-bit, so the core index must fit a 32-bit shift. */
-	assert(core_pos < 32U);
-	linear_id = 1U << core_pos;
-
-	spin_lock(&cpucp_clkdom_init_spinlock);
-
-	/* Bring up the SCMI channel on first use. */
-	if (cpucp_scmi_handle == NULL) {
-		cpucp_scmi_handle = scmi_init(&cpucp_scmi_channel, NULL);
-		assert(cpucp_scmi_handle != NULL);
-	}
-
-	for (i = 0; i < CD_MAX; i++) {
-		if ((clkdom_init_status[i] != 0U) ||
-		    ((linear_id & clkdom_cpumasks[i].cpumask) == 0U)) {
-			continue;
-		}
-
-		if (cpucp_scmi_clock_enable(cpucp_scmi_handle,
-					    clkdom_cpumasks[i].clkdom) ==
-		    SCMI_E_SUCCESS) {
-			clkdom_init_status[i] = 1U;
-		}
-
-		break;
-	}
-
-	spin_unlock(&cpucp_clkdom_init_spinlock);
+	return &cpucp_scmi_plat_info;
 }

@@ -17,13 +17,16 @@ PLAT_INCLUDES += \
 
 ifeq (${QTI_NCC_CPU},1)
 BL31_SOURCES += \
-	$(CPUCP_DRV_PATH)/cpucp_scmi.c			\
+	$(CPUCP_DRV_PATH)/cpucp.c			\
+	$(CPUCP_DRV_PATH)/cpucp_pwr.c			\
+	$(CPUCP_DRV_PATH)/cpucp_reset.c			\
 	$(CPUCP_DRV_PATH)/$(CHIPSET)/cpucp_config.c
 else
 BL31_SOURCES += \
 	$(CPUCP_DRV_PATH)/cpucp.c			\
+	$(CPUCP_DRV_PATH)/cpucp_arm.c			\
+	$(CPUCP_DRV_PATH)/cpucp_clk.c			\
 	$(CPUCP_DRV_PATH)/$(CHIPSET)/cpu_config.c	\
 	$(CPUCP_DRV_PATH)/$(CHIPSET)/cpucp_config.c	\
-	$(CPUCP_DRV_PATH)/hoya/cpucp_start.c		\
 	drivers/arm/css/scmi/scmi_common.c
 endif
