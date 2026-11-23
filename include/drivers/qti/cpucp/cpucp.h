@@ -15,9 +15,6 @@
 
 #ifdef QTI_CPUCP_ENABLED
 
-/* Request to enable the clock domain owning the calling core on cold boot. */
-void cpucp_clkdom_init(void);
-
 /* Bring the CPUCP (EPSS/RISC-V MUC) microcontroller out of reset on cold boot. */
 void qti_cpucp_init(void);
 

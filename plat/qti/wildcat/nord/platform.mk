@@ -139,7 +139,7 @@ QTI_BL31_SOURCES	:=	$(QTI_PLAT_PATH)/common/src/$(ARCH)/wildcat_helpers.S	\
 				drivers/qti/crypto/rng.c
 #
 # PSCI ops wrapper: use the common qti_pm.c which calls plat_qti_pwr_*
-# hooks implemented in plat/qti/cpu/ncc/src/qcom_ncc_psci.c.
+# hooks implemented in plat/qti/cpu/ncc/src/qti_ncc_pm.c
 # (plat/qti/wildcat/common/src/qti_pm.c uses bl31qtilib_* and is NOT
 # used for NCC targets.)
 #
@@ -201,7 +201,7 @@ QTI_CPU_PATH		:=	plat/qti/cpu
 
 BL31_CPU_SETUP_SRC	:=	$(QTI_CPU_PATH)/ncc/src/bl31_cpu_setup.c
 # NCC PSCI platform hooks (plat_qti_pwr_* back-end for qti_pm.c)
-BL31_SOURCES		+=	$(QTI_CPU_PATH)/ncc/src/qcom_ncc_psci.c
+BL31_SOURCES		+=	$(QTI_CPU_PATH)/ncc/src/qti_ncc_pm.c
 
 #
 # SCMI driver sources: ARM CSS SCMI stack.
@@ -216,8 +216,7 @@ $(eval $(call add_define,SCMI_SKIP_SYS_PWR_PROTO_CHECK))
 
 SCMI_SOURCES		:=	drivers/arm/css/scmi/scmi_common.c		\
 				drivers/arm/css/scmi/scmi_pwr_dmn_proto.c	\
-				drivers/arm/css/scmi/scmi_reset_domain_proto.c	\
-				$(QTI_CPU_PATH)/ncc/src/ncc_cpu_power.c
+				drivers/arm/css/scmi/scmi_reset_domain_proto.c
 
 BL31_SOURCES		+=	${QTI_BL31_SOURCES}				\
 				${GIC_SOURCES}					\

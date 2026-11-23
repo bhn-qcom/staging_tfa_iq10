@@ -18,8 +18,8 @@
  *   NCC_SCMI_DOMAIN_ID(cluster, core) = (cluster << 8) | core
  */
 
-#ifndef NCC_CPU_POWER_H
-#define NCC_CPU_POWER_H
+#ifndef CPUCP_PWR_H
+#define CPUCP_PWR_H
 
 #include <stdint.h>
 
@@ -83,4 +83,4 @@ uint32_t cpucp_cluster_core_power_off(uint64_t mpidr);
 uint32_t cpucp_get_cluster_core_power_info(uint64_t mpidr, uint32_t *state);
 void cpuss_pwron_lib_init(void);
 
-#endif /* NCC_CPU_POWER_H */
+#endif /* CPUCP_PWR_H */

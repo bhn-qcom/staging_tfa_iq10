@@ -60,7 +60,7 @@
  *   NCC_SCMI_PWR_STATE_OFF = 1U
  *   NCC_SCMI_DOMAIN_ID(cluster, core) = (cluster << 8) | core
  */
-#include <ncc_cpu_power.h>
+#include <cpucp_pwr.h>
 
 /*
  * SCMI channel handle – set by cpuss_pwron_lib_init() and used by all
